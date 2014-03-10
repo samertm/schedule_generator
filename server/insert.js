@@ -1,4 +1,4 @@
-function no_conflict(time, arr_time) {
+no_conflict = function no_conflict(time, arr_time) {
     var arr_time_len = arr_time.length;
     if (arr_time_len == 0) {
         return true;
@@ -21,7 +21,7 @@ function no_conflict(time, arr_time) {
     return true;
 }
 
-function task_name_valid  (task_name) {
+task_name_valid = function task_name_valid (task_name) {
     if (task_name === undefined) {
         return false;
     } else if (task_name === "") {
@@ -31,7 +31,7 @@ function task_name_valid  (task_name) {
     }
 }
 
-function task_hours_valid (task_hours) {
+task_hours_valid = function task_hours_valid (task_hours) {
     if (isNaN(task_hours)) {
         return false;
     } else if (task_hours === 0) {
@@ -41,7 +41,7 @@ function task_hours_valid (task_hours) {
     }
 }
 
-function end_date_valid (month, day, year) {
+end_date_valid = function end_date_valid (month, day, year) {
     month = parseInt(month);
     day = parseInt(day);
     year = parseInt(year);
@@ -60,7 +60,7 @@ function end_date_valid (month, day, year) {
     }
 }
 
-function from_to_valid(from, to, days) {
+from_to_valid = function from_to_valid (from, to, days) {
     if (to != parseInt(to) || from != parseInt(from)) {
         return false;
     }
@@ -83,12 +83,11 @@ function from_to_valid(from, to, days) {
     return false;
 }
 
-function insert_task (name, hours, from, to, days, month, day, year, immutable, optional) {
+insert_task = function insert_task (name, hours, from, to, days, month, day, year, immutable, optional) {
     var task_insert = {}
     if (!task_name_valid(name)) {
         return false;
     }
-
 
     if (immutable) {
         if (!from_to_valid(from, to, days)) {
@@ -129,6 +128,6 @@ function insert_task (name, hours, from, to, days, month, day, year, immutable, 
     return true;
 }
 
-function remove_task (obj_id) {
+remove_task = function remove_task (obj_id) {
     Tasks.remove(obj_id);
 }

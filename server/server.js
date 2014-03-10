@@ -1,141 +1,112 @@
-Tasks = new Meteor.Collection("tasks")
-
-Meteor.publish("users_tasks", function () {
-    return Tasks.find({user: this.userId});
-});
-
-function no_conflict(time, arr_time) {
-    var arr_time_len = arr_time.length;
-    if (arr_time_len == 0) {
-        return true;
-    }
-    
-    for (var i = 0; i < arr_time_len; i++) {
-        var other_time = arr_time[i];
-        if (time.start == other_time.start) {
-            return false;
-        } else if (time.start < other_time.start) {
-            if (time.end > other_time.start) {
-                return false;
-            }
-        } else { // other_time.start < time.start
-            if (other_time.end > time.start) {
-                return false;
+gen_time_totals = function gen_time_totals (tasks) {
+    var Range = function (start, end) {
+        var length = function () {
+            return this.end - this.start;
+        };
+        return { start: start, end: end, length: length };
+    };
+    var sum_at_indicies = function (array, indicies) {
+        var sum = 0;
+        for (var i = 0; i < indicies.length; i++) {
+            sum += array[indicies[i]];
+        }
+        return sum;
+    };
+    var calculate_range_offset = function (day_indicies, total_daily_load, offset_range) {
+        var min_offset = 0;
+        var min_num_hours = sum_at_indicies(total_daily_load, day_indicies);
+        for (var offset = offset_range.start; offset < offset_range.end; offset++) {
+            var temp_day_indicies = day_indicies.map(
+                function(x) {
+                    return offset + x;
+                }
+            );
+            var num_hours = sum_at_indicies(total_daily_load, temp_day_indicies);
+            if (num_hours < min_num_hours) {
+                min_offset = offset;
+                min_num_hours = num_hours;
             }
         }
-    }
-    return true;
-};
+        return day_indicies.map(function(x) { return min_offset + x });
+    };
+    var add_to_arrays = function (arrays, index, amount) {
+        for (var i = 0; i < arrays.length; i++) {
+            arrays[i][index] += amount;
+        }
+    };
 
-function TimePair (start, end) {
-    function toString() {
-        return "("+this.start+", "+this.end+")";
-    }
-    function length() {
-        return this.end - this.start;
-    }
-    return { start: start, end: end, toString: toString};
-};
-
-function task_name_valid  (task_name) {
-    if (task_name === undefined) {
-        return false;
-    } else if (task_name === "") {
-        return false;
-    } else {
-        return true;
-    }
-};
-function task_hours_valid (task_hours) {
-    if (isNaN(task_hours)) {
-        return false;
-    } else if (task_hours === 0) {
-        return false;
-    } else {
-        return true;
-    }
-};
-
-function end_date_valid (month, day, year) {
-    month = parseInt(month);
-    day = parseInt(day);
-    year = parseInt(year);
-    if (month == NaN ||
-        day == NaN   ||
-        year == NaN) {
-        return false;
-    }
-    var date = new Date(year, month, day);
-    if (date.getMonth() == month &&
-        date.getDate() == day     &&
-        date.getFullYear() == year) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
-function gen_time_totals (tasks) {
-    var tasks_len = tasks.length;
-    var max_daily_load = 9;
     var max_daily_task_load = 2;
     var min_daily_task_load = 1;
-    var day_load = new Array(7);
-
-    for (var i = 0; i < 7; i++) {
-        day_load[i] = 0;
+    var total_daily_load = new Array(7);
+    for (var i = 0; i < total_daily_load.length; i++) {
+        total_daily_load[i] = 0;
     }
+    var three_day_threshold = max_daily_task_load * 2;
+    var week_threshold = max_daily_task_load * 3;
+    var weekend_threshold = max_daily_task_load * 5;
 
-    for (var i = 0; i < tasks_len; i++) {
-        if (tasks[i].immutable) {
-            for (var j = 0; j < 7; j++) {
-                var t = 0;
-                tasks[i].task_times[j].forEach(function (this_time) {
-                    t += this_time;
-                });
-                day_load[j] += t;
+    for (var t = 0; t < tasks.length; t++) {
+        var task = tasks[t];
+        if (task.immutable) {
+            for (var i = 0; i < total_daily_load.length; i++) {
+                var time_accumulator = 0;
+                var task_times_len = task.task_times[i].length;
+                for (var j = 0; j < task_times_len; j++) {
+                    time_accumulator += task.task_times[i][j].length;
+                }
+                total_daily_load[i] += time_accumulator;
             }
-        } else {
-            var task_total_load = 0;
+        } else { // task.immutable == false
+            var day_indicies;
+            if (task.task_hours > weekend_threshold) {
+                day_indicies = [0, 1, 2, 3, 4, 5, 6]; // full week
+            } else if (task.task_hours > week_threshold) {
+                day_indicies = [1, 2, 3, 4, 5]; // work week
+            } else if (task.task_hours > three_day_threshold) {
+                day_indicies = calculate_range_offset([1, 3, 5], total_daily_load, new Range(-1, 2));
+            } else {
+                day_indicies = calculate_range_offset([2, 4], total_daily_load, new Range(-2, 3));
+            }
+
+            var total_extra_hours = task.task_hours - (max_daily_task_load * day_indicies.length);
+            var daily_extra_hours = total_extra_hours / day_indicies.length;
             var task_daily_load = new Array(7);
-            for (var j = 0; j < 7; j++) {
+            for (var j = 0; j < task_daily_load.length; j++) {
                 task_daily_load[j] = 0;
-            }
-            
-            for (var j = 1; j < 6; j++) {
-                if (tasks[i].task_hours <= task_total_load) {
-                    break;
-                }
-                if (day_load[j] >= max_daily_load) {
-                    continue;
-                }
-                var task_load;
-                if ((tasks[i].task_hours - task_total_load) < max_daily_task_load) {
-                    task_load = tasks[i].task_hours - task_total_load;
-                } else {
-                    task_load = max_daily_task_load;
-                }
-                var load_remaining = max_daily_load - day_load[j];
-                
-                if (load_remaining < task_load) {
-                    if (load_remaining >= min_daily_task_load) {
-                        task_daily_load[j] += load_remaining;
-                        day_load[j] += load_remaining;
-                        task_total_load += load_remaining;
-                    }
-                } else { // load_remaining >= task_load
-                    task_daily_load[j] += task_load;
-                    day_load[j] += task_load;
-                    task_total_load += task_load;
-                }
-            }
-            
-            tasks[i].task_times_totals = task_daily_load;
-        }
-    }
-};
+            };
 
-function gen_schedule_times(tasks) {
+            for (var i = 0; i < day_indicies.length; i++) {
+                var day = day_indicies[i];
+                var hours_left = task.task_hours - task_daily_load.reduce(
+                    function(prev, curr) { return prev + curr; }, 0);
+                if (hours_left <= max_daily_task_load) {
+                    if (hours_left > 0) {
+                        if (hours_left > min_daily_task_load) {
+                            add_to_arrays([task_daily_load, total_daily_load], day, hours_left);
+                        } else {
+                            add_to_arrays([task_daily_load, total_daily_load], day, min_daily_task_load);
+                        }
+                    }
+                } else { // hours_left > max_daily_task_load
+                    add_to_arrays([task_daily_load, total_daily_load], day, max_daily_task_load);
+                    if (total_extra_hours> 0) {
+                        if (daily_extra_hours > min_daily_task_load) {
+                            add_to_arrays([task_daily_load, total_daily_load],
+                                          day, Math.ceil(daily_extra_hours));
+                            total_extra_hours -= Math.ceil(daily_extra_hours);
+                        } else {
+                            add_to_arrays([task_daily_load, total_daily_load], day, min_daily_task_load);
+                            total_extra_hours -= min_daily_task_load;
+                        }
+                    }
+                }
+            }
+        }
+        task.task_times_totals = task_daily_load;
+    }
+}
+
+gen_schedule_times = function gen_schedule_times (tasks) {
     var tasks_len = tasks.length;
     var day_times = new Array(7);
     for (var i = 0; i < 7; i++) {
@@ -177,105 +148,24 @@ function gen_schedule_times(tasks) {
         }
     }
     
-};
-
-function from_to_valid(from, to, days) {
-    if (to != parseInt(to) || from != parseInt(from)) {
-        return false;
-    }
-    to = parseInt(to);
-    from = parseInt(from);
-    if (isNaN(from) || isNaN(to) || ! _.isArray(days) ||
-        to <= from ||
-        to > 24 || from > 24 || to < 0 || from < 0 ||
-        days.length != 7
-       ) {
-        return false;
-    }
-    
-    var days_len = 7;
-    for (var i = 0; i < days_len; i++) {
-        if (days[i] === true) {
-            return true;
-        }
-    }
-    return false;
 }
 
-Meteor.startup(function () {
-    // code to run on server at startup
-});
-Meteor.methods({
-    remove_everything: function () {
-        Tasks.remove({});
-    },
-    task_name_valid: task_name_valid,
-    task_hours_valid: task_hours_valid,
-    end_date_valid: end_date_valid,
-    from_to_valid: from_to_valid,
-    insert_task: function(name, hours, from, to, days, month, day, year, immutable, optional) {
-        var task_insert = {}
-        if (!task_name_valid(name)) {
-            return false;
-        }
+generate_schedule = function generate_schedule (user_id) {
+    Tasks.update({user: user_id, immutable: false},
+                 {$unset: {task_times_totals: "", task_times: ""}},
+                 {multi: true});
+    
+    var tasks = Tasks.find({user: user_id, immutable: true}).fetch().
+        concat(Tasks.find({user: user_id, immutable: false}).fetch());
+    gen_time_totals(tasks);
+    gen_schedule_times(tasks);
 
-
-        if (immutable) {
-            if (!from_to_valid(from, to, days)) {
-                return false;
-            }
-            task_insert.immutable = true;
-            
-            var days_len = 7;
-            var task_times = new Array(7);
-            for (var i = 0; i < 7; i++) {
-                task_times[i] = [];
-            }
-            for (var i = 0; i < days_len; i++) {
-                if (days[i]) {
-                    task_times[i].push(new TimePair(from, to));
-                }
-            }
-            task_insert.task_times = task_times;
-        } else {
-            if (!task_hours_valid(hours)) {
-                return false;
-            }
-            task_insert.immutable = false;
-            task_insert.task_hours = hours;
-        }
-        
-        task_insert.user = Meteor.userId();
-        task_insert.task_name = name;
-
-        if (optional === true) {
-            if (end_date_valid(month, day, year)) {
-                var date = new Date(year, month, day);
-                task_insert.end_date = date;
-            }
-        }
-
-        Tasks.insert(task_insert);
-        return true;
-    },
-    remove_task: function(obj_id) {
-        Tasks.remove(obj_id);
-    },
-    generate_schedule: function(user_id) {
-        Tasks.update({user: user_id, immutable: false},
-                     {$unset: {task_times_totals: "", task_times: ""}},
+    tasks.forEach(function (this_task) {
+        Tasks.update({_id: this_task._id},
+                     {$set: {task_times_totals: this_task.task_times_totals,
+                             task_times: this_task.task_times}},
                      {multi: true});
-        
-        var tasks = Tasks.find({user: user_id, immutable: true}).fetch().
-            concat(Tasks.find({user: user_id, immutable: false}).fetch());
-        gen_time_totals(tasks);
-        gen_schedule_times(tasks);
+    });
+}
 
-        tasks.forEach(function (this_task) {
-            Tasks.update({_id: this_task._id},
-                         {$set: {task_times_totals: this_task.task_times_totals,
-                                 task_times: this_task.task_times}},
-                         {multi: true});
-        });
-    }
-});
+
