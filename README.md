@@ -56,6 +56,7 @@ all ranges (1..4) exclude the last number. For instance, 1..4 is the numbers 1, 
 `/_` indicates a lamba. Usage:
 
 `/x : x plus 3` is equivalent to function(x) { return x + 3 }
+
 `/x,y : x plus y plus 3` is equivalent to function(x,y) { return x + y + 3 };
 
     def Calculate_Range_Offset (day_indicies, total_daily_load, offset_range):
