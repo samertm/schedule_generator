@@ -21,37 +21,37 @@ sytanx.
 
 Definitions:
 
-* tasks - an array of task objects with the following ordering:
+* `tasks` - an array of task objects with the following ordering:
   * all immutable tasks, then
   * all mutable tasks in descending order (largest to smallest)
-* task - an object with the following fields:
-  * weekly_hours - the number of hours a week the task should be scheduled
-  * daily_totals - an array of numbers and of length 7 that represents the
+* `task` - an object with the following fields:
+  * `weekly_hours` - the number of hours a week the task should be scheduled
+  * `daily_totals` - an array of numbers and of length 7 that represents the
                  number of hours a task should be scheduled each day
-  * immutable    - a boolean that represents whether or not a task is subject to
+  * `immutable`    - a boolean that represents whether or not a task is subject to
                  the scheduling algorithm. If true, the task object has no
                  weekly_hours or daily_totals fields, and times is defined.
-  * times        - an array of pairs and of length 7 that represents the start
+  * `times`        - an array of pairs and of length 7 that represents the start
                  an end time a task is scheduled for each day. Only applicable
                  to immutable tasks in this algorithm.
-* max_daily_task_load - the maximum number of hours a task should have each day.
+* `max_daily_task_load` - the maximum number of hours a task should have each day.
                       Tasks can have more than the max_daily_task_load on a day.
-* min_daily_task_load - the minimum number of hours a task can be assigned each
+* `min_daily_task_load` - the minimum number of hours a task can be assigned each
                       day. If a task is scheduled for a day, it cannot have
                       fewer than min_daily_task_load hours.
-* total_daily_load    - an array of numbers and of length 7 that represents the
+* `total_daily_load`    - an array of numbers and of length 7 that represents the
                       total number of hours that have been scheduled for each day
-* three_day_threshold - a number which represents how large weekly_hours must
+* `three_day_threshold` - a number which represents how large weekly_hours must
                       be before a task is assigned for three days in a row,
                       i.e. Monday, Wednesday, and Friday
-* week_threshold      - a number which represents how large weekly_hours must
+* `week_threshold`      - a number which represents how large weekly_hours must
                       be before a task is assigned for a full work week, i.e.
                       Monday to Friday
-* weekend_threshold   - a number which represents how large weekly_hours must
+* `weekend_threshold`   - a number which represents how large weekly_hours must
                       be before a task is assigned for a full week, i.e. Sunday
                       to Saturday
 
-all ranges (1..4) exclude the last number. For instance, 1..4 is the numbers 1, 2, 3
+all ranges (1..4) exclude the last number. For instance, the range `1..4` is the numbers 1, 2, 3
 
 `/_` indicates a lamba. Usage:
 
