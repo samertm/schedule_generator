@@ -14,7 +14,6 @@ framework.
 
 ## License
 
-This work is (soon to be) licensed under the GNU Affero General Public License.
-That means, if you wish to distribute the code on run it on your servers, you
-must provide a way for your users to download it. The license can be found in
-the LICENSE file.
+This work is licensed under the GNU Affero General Public License. That means,
+if you wish to distribute the code on run it on your servers, you must provide a
+way for your users to download it. The license can be found in the LICENSE file.
