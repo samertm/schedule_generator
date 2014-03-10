@@ -107,16 +107,15 @@ gen_time_totals = function gen_time_totals (tasks) {
 }
 
 gen_schedule_times = function gen_schedule_times (tasks) {
-    var tasks_len = tasks.length;
     var day_times = new Array(7);
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < day_times.length; i++) {
         day_times[i] = [];
     }
     var day_start = 10;
     var day_end = 21;
-    for (var i = 0; i < tasks_len; i++) {
+    for (var i = 0; i < tasks.length; i++) {
         if (tasks[i].immutable) {
-            for (var day = 0; day < 7; day++) {
+            for (var day = 0; day < day_times.length; day++) {
                 tasks[i].task_times[day].forEach(function (this_time) {
                     if (no_conflict(this_time, day_times[day])) {
                         day_times[day].push(this_time);
@@ -129,7 +128,7 @@ gen_schedule_times = function gen_schedule_times (tasks) {
                 task_times[j] = [];
             }
             
-            for (var day = 1; day < 6; day++) {
+            for (var day = 0; day < day_times.length; day++) {
                 var task_length = tasks[i].task_times_totals[day];
                 if (task_length <= 0) {
                     continue;
