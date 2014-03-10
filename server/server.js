@@ -11,22 +11,17 @@ function no_conflict(time, arr_time) {
     }
     
     for (var i = 0; i < arr_time_len; i++) {
-        if (time.start == arr_time[i].start) {
+        var other_time = arr_time[i];
+        if (time.start == other_time.start) {
             return false;
-        } else if (time.end == arr_time[i].end) {
-            return false;
-        } else if (time.start > arr_time[i].start &&
-                   time.start < arr_time[i].end) {
-            return false;
-        } else if (time.end > arr_time[i].start &&
-                   time.end < arr_time[i].end) {
-            return false;
-        } else if (arr_time[i].start > time.start &&
-                   arr_time[i].start < time.end) {
-            return false;
-        } else if (arr_time[i].end > time.start &&
-                   arr_time[i].end < time.end) {
-            return false;
+        } else if (time.start < other_time.start) {
+            if (time.end > other_time.start) {
+                return false;
+            }
+        } else { // other_time.start < time.start
+            if (other_time.end > time.start) {
+                return false;
+            }
         }
     }
     return true;
