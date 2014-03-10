@@ -1,0 +1,30 @@
+<template name="listSchedule">
+  <div>
+    <h2>Your Schedule</h2>
+    <div>
+      <table class="table table-bordered table-condensed" id="schedule">
+        {{{schedule_table}}}
+      </table>
+    </div>
+    <input type="button" class="btn btn-primary" id="generateSchedule" value="Generate Schedule" /><br />
+    {{#if debug}}
+    {{#each schedule}}
+    {{> schedule_item}}
+    {{/each}}
+    {{/if}}
+  </div>
+</template>
+
+<template name="schedule_item">
+  <div>
+    <p><bold>Name: </bold>{{task_name}}</p>
+    <p><bold>Time Totals: </bold>{{task_times_totals}}</p>
+    <p><bold>Times: </bold>
+      {{#each task_times}}
+      [{{#each this}}
+      ({{start}},{{end}})
+      {{/each}}],
+      {{/each}}
+    </p>
+  </div>
+</template>
