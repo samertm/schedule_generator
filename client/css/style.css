@@ -26,5 +26,10 @@ body {
     font-weight: bold;
 }
 
+footer {
+    padding: 20px 0px;
+}
 
-    
+footer .col-md-12 {
+    padding: 0px 0px;
+}
