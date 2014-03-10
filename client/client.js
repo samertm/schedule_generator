@@ -30,7 +30,7 @@ Accounts.ui.config({
     passwordSignupFields: 'USERNAME_ONLY'
 });
 
-var debug = false;
+var debug = true;
 
 Template.listTasks.tasks = function () {
     return Tasks.find({user: Meteor.userId()});
@@ -214,6 +214,7 @@ Template.tasks.events({
             if (err) {
                 console.log(err);
             }
+            
         });
     }
 });

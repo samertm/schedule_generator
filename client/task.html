@@ -8,10 +8,18 @@
 </template>
         
 <template name="tasks">
-  <div class="task">
-    <p><bold>Name: </bold>{{task_name}}</p>
-    <p><bold>Hours: </bold>{{task_hours}}</p>
-    <p><bold>End date: </bold>{{end_date}}</p>
-    <input type="button" class="btn btn-sm btn-warning" id="removeTask" value="Remove {{task_name}}" />
+  <div class="panel panel-default task">
+    <div class="panel-heading">
+      <h3 class="panel-title">{{task_name}}</h3>
+    </div>
+    <div class="panel-body">
+      {{#if task_hours}}
+      <p><bold>Hours a week: </bold>{{task_hours}}</p>
+      {{/if}}
+      {{#if end_date}}
+      <p><bold>End date: </bold>{{end_date}}</p>
+      {{/if}}
+      <input type="button" class="btn btn-sm btn-warning" id="removeTask" value="Remove {{task_name}}" />
+    </div>
   </div>
 </template>
