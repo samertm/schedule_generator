@@ -1,0 +1,152 @@
+<head>
+  <title>Schedule Generator</title>
+</head>
+
+<body>
+  <div class="nav navbar-default">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Schedule Generator</a>
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        {{loginButtons}}
+      </ul>
+    </div>
+  </div>
+  <div class="container content">
+    
+    {{#if currentUser}}
+    <div class="row">
+      <div class="col-md-4">
+        {{> enterTask}}
+        {{> listTasks}}
+      </div>
+      <div class="col-md-8">
+        {{> listSchedule}}
+      </div>
+    </div>
+    {{else}}
+    <p>Please login above.</p>
+    {{/if}}
+    <footer>
+      <div class="col-md-12">
+        <p>Made with the <a href="https://www.meteor.com/">Meteor.js</a> framework.</p>
+        <p>Copyright <a href="/">Samer Masterson</a>.</p>
+        <p>Soon to be released under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPLv3</a>.</p>
+      </div>
+    </footer>
+    
+  </div>
+</body>
+
+<template name="enterTask">
+  <div>
+    <h2>Enter a task</h2>
+    <div class="form-horizontal">
+      <fieldset>
+        <p>
+          <bold>Task name: </bold><input type="text" id="task_name">
+          {{#if task_name_error}}
+          <span class="error">{{task_name_error}}</span>
+          {{/if}}
+        </p>
+        {{#if display_immutable_task}}
+        <p>
+          From <input type="text" id="task_from"> to <input type="text" id="task_to"> (24 hour time, in 1 hour increments. No time parser yet.)
+          {{#if task_from_to_error}}
+          <span class="error">{{task_from_to_error}}</span>
+          {{/if}}
+          <a href="#" id="task_immutable_toggle">or, enter hours a week</a> <br />
+          sun <input type="checkbox" class="checkbox" id="ch_sun"> mon <input type="checkbox" class="checkbox" id="ch_mon">
+          tue <input type="checkbox" class="checkbox" id="ch_tue"> wed <input type="checkbox" class="checkbox" id="ch_wed">
+          thu <input type="checkbox" class="checkbox" id="ch_thu"> fri <input type="checkbox" class="checkbox" id="ch_fri">
+          sat <input type="checkbox" class="checkbox" id="ch_sat">
+        </p>
+        {{else}}
+        <p>
+          <bold>Hours a week: </bold><input type="text" id="task_hours">
+          {{#if task_hours_error}}
+          <span class="error">{{task_hours_error}}</span>
+          {{/if}}
+          <a href="#" id="task_immutable_toggle">or, enter to and from</a>
+        </p>
+        {{/if}}
+        <p><a href="#" id="optional">optional settings</a></p>
+        {{#if display_optional_settings}}
+        <p>
+          <bold>ends: </bold>
+          <select id="month">
+            <option value="0" label="January">January</option>
+            <option value="1" label="February">February</option>
+            <option value="2" label="March">March</option>
+            <option value="3" label="April">April</option>
+            <option value="4" label="May">May</option>
+            <option value="5" label="June">June</option>
+            <option value="6" label="July">July</option>
+            <option value="7" label="August">August</option>
+            <option value="8" label="September">September</option>
+            <option value="9" label="October">October</option>
+            <option value="10" label="November">November</option>
+            <option value="11" label="December">December</option>
+          </select>
+          <input type="text" value="day" id="day">
+          <input type="text" value="{{current_year}}" id="year">
+          {{#if end_date_error}}
+          <span class="error">{{end_date_error}}</span>
+          {{/if}}
+        </p>
+        {{/if}}
+        <input type="button" class="btn btn-primary" id="submitButton" value="submit" />
+      </fieldset>
+    </div>
+  </div>
+</template>
+
+<template name="listTasks">
+  <div>
+    <h2>Your Tasks</h2>
+    {{#each tasks}}
+    {{> tasks}}
+    {{/each}}
+  </div>
+</template>
+        
+<template name="tasks">
+  <div class="task">
+    <p><bold>Name: </bold>{{task_name}}</p>
+    <p><bold>Hours: </bold>{{task_hours}}</p>
+    <p><bold>End date: </bold>{{end_date}}</p>
+    <input type="button" class="btn btn-sm btn-warning" id="removeTask" value="Remove {{task_name}}" />
+  </div>
+</template>
+
+<template name="listSchedule">
+  <div>
+    <h2>Your Schedule</h2>
+    <div>
+      <table class="table table-bordered table-condensed" id="schedule">
+        {{{schedule_table}}}
+      </table>
+    </div>
+    <input type="button" class="btn btn-primary" id="generateSchedule" value="Generate Schedule" /><br />
+    {{#if debug}}
+    {{#each schedule}}
+    {{> schedule_item}}
+    {{/each}}
+    {{/if}}
+  </div>
+</template>
+
+<template name="schedule_item">
+  <div>
+    <p><bold>Name: </bold>{{task_name}}</p>
+    <p><bold>Time Totals: </bold>{{task_times_totals}}</p>
+    <p><bold>Times: </bold>
+      {{#each task_times}}
+      [{{#each this}}
+      ({{start}},{{end}})
+      {{/each}}],
+      {{/each}}
+    </p>
+  </div>
+</template>
